@@ -7,10 +7,10 @@ Install the following first:
  - virtualbox (https://www.virtualbox.org/wiki/Downloads)
 
 Then: 
- - git clone https://github.com/swagatpatel/bensmom.git into a folder of your choosing.
- - cd bensmom/
+ - git clone https://github.com/fivestars/vagrant-celery-demo.git into a folder of your choosing.
+ - cd vagrant-celery-demo/
  - vagrant up
- - (sometimes the initial provision times out at the 'gathering data' stage because vagrant VM is not fully up yet; if you see an error that says something about an ssh timeout, simply do 'vagrant provision' to resume the provisioning)
+ - (sometimes the initial provision times out at the 'gathering facts' stage because vagrant VM is not fully up yet; if you see an error that says something about an ssh timeout, simply do 'vagrant provision' to resume the provisioning)
  - (for now...) run the server by vagrant ssh'ing into the vm, and then python code/manage.py runserver 0.0.0.0:8000
  - (for now...) run celeryd by vagrant ssh'ing, then python code/manage.py celeryd -B -E --loglevel=INFO
  - (and finally...) vagrant ssh; python code/manage.py celerycam to start celerycam
