@@ -1,0 +1,2 @@
+vagrant-celery-demo
+===================
