@@ -11,12 +11,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.provider "virtualbox" do |vb|
-      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--memory", "2048"]
+#     vb.gui = true     # uncomment this line for debugging if virtualbox has problems booting.
   end
   config.vm.box = "precise32"
   config.vm.box_url = "http://files.vagrantup.com/precise32.box"
-  config.vm.network "private_network", ip: "10.255.255.245"
-  config.vm.network "forwarded_port", guest: 8000, host: 4567
+# config.vm.network "private_network", ip: "10.255.255.245"
+  config.vm.network "forwarded_port", guest: 8000, host: 8080, id: "django"
+  config.vm.network "forwarded_port", guest: 15672, host: 8081, id: "rabbitmq-management"
+  config.vm.network "forwarded_port", guest: 5555, host: 8082, id: "celery-flower"
 # config.vm.network "forwarded_port", guest: 15672, host: 4568
   config.vm.synced_folder "app/", "/home/vagrant/code/"
   config.vm.boot_timeout = 600
@@ -27,54 +30,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.verbose = "vvvv"
       ansible.host_key_checking = false
   end
-# config.vm.define "celeryworker" do |celery|
-#     celery.vm.box = "precise32"
-#     celery.vm.box_url = "http://files.vagrantup.com/precise32.box"
-#     celery.vm.network "private_network", ip: "10.255.255.247"
-#     celery.vm.provision "ansible" do |ansible|
-#         ansible.playbook = "provisioning/playbook-celery.yml"
-#         ansible.inventory_path = "provisioning/ansible_hosts"
-#   #     ansible.sudo_user = "vagrant"
-#         ansible.verbose = "vvvv"
-#         ansible.host_key_checking = false
-#     end
-# end
-# config.vm.define "dbserver" do |psql|
-#     psql.vm.box = "precise32"
-#     psql.vm.box_url = "http://files.vagrantup.com/precise32.box"
-#     psql.vm.network "private_network", ip: "10.255.255.245"
-#     psql.vm.provision "ansible" do |ansible|
-#         ansible.playbook = "provisioning/playbook-db.yml"
-#         ansible.inventory_path = "provisioning/ansible_hosts"
-#   #     ansible.sudo_user = "vagrant"
-#         ansible.verbose = "vvvv"
-#         ansible.host_key_checking = false
-#     end
-# end
-# config.vm.define "rabbitmq" do |rabbit|
-#     rabbit.vm.box = "precise32"
-#     rabbit.vm.box_url = "http://files.vagrantup.com/precise32.box"
-#     rabbit.vm.network "private_network", ip: "10.255.255.248"
-#     rabbit.vm.provision "ansible" do |ansible|
-#         ansible.playbook = "provisioning/playbook-rabbit.yml"
-#         ansible.inventory_path = "provisioning/ansible_hosts"
-#   #     ansible.sudo_user = "vagrant"
-#         ansible.verbose = "vvvv"
-#         ansible.host_key_checking = false
-#     end
-# end
-# config.vm.define "webserver" do |web|
-#     web.vm.box = "precise32"
-#     web.vm.box_url = "http://files.vagrantup.com/precise32.box"
-#     web.vm.network "private_network", ip: "10.255.255.246"
-#     web.vm.provision "ansible" do |ansible|
-#         ansible.playbook = "provisioning/playbook-web.yml"
-#         ansible.inventory_path = "provisioning/ansible_hosts"
-#   #     ansible.sudo_user = "vagrant"
-#         ansible.verbose = "vvvv"
-#         ansible.host_key_checking = false
-#     end
-# end
 # config.ssh.host = 2200
 # config.ssh.guest_port = 2200
 end

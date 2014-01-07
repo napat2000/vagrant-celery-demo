@@ -1,2 +1,2 @@
 [vagrant]
-10.255.255.245
+127.0.0.01 ansible_ssh_port=2222

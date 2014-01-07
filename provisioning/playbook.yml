@@ -2,6 +2,15 @@
 - hosts: vagrant
   sudo: true
   tasks:
+    - name: copy a bunch of files to set up supervisor
+      copy: dest={{ item }} force=no mode=664 content=''
+      with_items:
+        - /var/log/supervisord.log
+        - /var/log/celerycam.log
+        - /var/log/celeryworker.log
+        - /var/log/flower.log
+        - /var/log/djangoserver.log
+        - /var/log/rabbitmq.log
     - name: install pip
       apt: pkg=python-pip state=present update_cache=yes
     - name: install django-celery
@@ -26,10 +35,16 @@
       rabbitmq_user: user=fsuser password=fspassword vhost=/ configure_priv=.* read_priv=.* write_priv=.* state=present
     - name: enable rabbitmq_management plugin
       rabbitmq_plugin: name=rabbitmq_management state=enabled
+    - name: restart rabbitmq-server
+      service: name=rabbitmq-server state=stopped # supervisor will start it
     - name: install django
       pip: name=django state=present version=1.6
     - name: install supervisor
       pip: name=supervisor state=present
+    - name: install celery-flower
+      pip: name=flower state=present version=0.6.0
+    - name: install python-requests 
+      pip: name=requests state=present version=2.1.0
 
 - hosts: vagrant
   sudo: true
@@ -44,9 +59,9 @@
 - hosts: vagrant
   sudo: true
   vars:
-      username: "test_superuser"
+      username: "guest"
       email: "superuser@email.com"
-      password: "test_password"
+      password: "guest"
 # vars_prompt:
 #     - name: "username"
 #       prompt: "Enter Django superuser name"
@@ -59,5 +74,8 @@
     - name: syncdb to create necessary tables
       django_manage: command=syncdb app_path=/home/vagrant/code/
     - name: create django superuser
-#     command: python create_superuser.py test_superuser superuser@email.com test_password chdir=/home/vagrant/code/ removes=/home/vagrant/code/no-superuser-set
-      command: python create_superuser.py {{username}} {{email}} {{password}} chdir=/home/vagrant/code/ #removes=/home/vagrant/code/no-superuser-set
+      command: python create_superuser.py {{username}} {{email}} {{password}} chdir=/home/vagrant/code/
+    - name: start supervisord service
+      command: supervisord chdir=/home/vagrant/code/
+#   - name: use supervisord to bring up all services
+#     supervisorctl: name='celeryapp:' state=restarted config=/home/vagrant/app/supervisord.conf
