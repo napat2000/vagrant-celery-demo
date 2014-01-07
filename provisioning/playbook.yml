@@ -2,7 +2,7 @@
 - hosts: vagrant
   sudo: true
   tasks:
-    - name: copy a bunch of files to set up supervisor
+    - name: touch a bunch of logfiles necessary for supervisord
       copy: dest={{ item }} force=no mode=664 content=''
       with_items:
         - /var/log/supervisord.log
@@ -10,72 +10,55 @@
         - /var/log/celeryworker.log
         - /var/log/flower.log
         - /var/log/djangoserver.log
-        - /var/log/rabbitmq.log
-    - name: install pip
-      apt: pkg=python-pip state=present update_cache=yes
-    - name: install django-celery
-      pip: name=django-celery state=present version=3.1.1
-    - name: install python-pycurl
+    - name: apt-get install python-pycurl  # have to do it here b/c apt_repository module needs it
       apt: pkg=python-pycurl state=present update_cache=yes
-    - name: install python-psycopg2
-      apt: pkg=python-psycopg2 state=present update_cache=yes
-    - name: install postgres
-      apt: pkg=postgresql state=present update_cache=yes
-    - name: add postgres user to admin group
-      user: name=postgres group=admin state=present
     - name: add rabbitmq apt repository to sources.list
       apt_repository: repo="deb http://www.rabbitmq.com/debian/ testing main" state=present update_cache=yes
     - name: add apt-key for rabbitmq
       apt_key: url=http://www.rabbitmq.com/rabbitmq-signing-key-public.asc state=present
-    - name: install rabbitmq
-      apt: pkg=rabbitmq-server state=present update_cache=yes
-    - name: add rabbitmq virtual host
-      rabbitmq_vhost: name=/fsvhost state=present
-    - name: add rabbitmq user and assign permissions for virtual host
-      rabbitmq_user: user=fsuser password=fspassword vhost=/ configure_priv=.* read_priv=.* write_priv=.* state=present
+    - name: apt-get install python-pip, python-psycopg2, postgresql, rabbitmq-server
+      apt: pkg={{ item }} state=present update_cache=yes
+      with_items:
+        - python-pip
+        - python-psycopg2
+        - postgresql
+        - rabbitmq-server
+    - name: pip install django==1.6 django-celery==3.1.1 supervisor==3.0 flower==0.6.0 requests==2.1.0
+      pip: name={{ item.name }} state=present version={{ item.version }}
+      with_items:
+        - { name: 'django', version: '1.6' }
+        - { name: 'django-celery', version: '3.1.1' }
+        - { name: 'supervisor', version: '3.0' }
+        - { name: 'flower', version: '0.6.0' }
+        - { name: 'requests', version: '2.1.0' }
+    - name: add postgres user to admin group
+      user: name=postgres group=admin state=present
     - name: enable rabbitmq_management plugin
       rabbitmq_plugin: name=rabbitmq_management state=enabled
     - name: restart rabbitmq-server
-      service: name=rabbitmq-server state=stopped # supervisor will start it
-    - name: install django
-      pip: name=django state=present version=1.6
-    - name: install supervisor
-      pip: name=supervisor state=present
-    - name: install celery-flower
-      pip: name=flower state=present version=0.6.0
-    - name: install python-requests 
-      pip: name=requests state=present version=2.1.0
+      service: name=rabbitmq-server state=restarted
 
 - hosts: vagrant
   sudo: true
   sudo_user: postgres
   tasks:
     - name: create database user
-      postgresql_user: user=vagrant password=password
+      postgresql_user: user=guest password=guest
     - name: create db
       # can set user/password with login_user and login_password arguments
-      postgresql_db: name=fscelery state=present owner=vagrant encoding='UTF-8' lc_ctype='en_US.UTF-8' lc_collate='en_US.UTF-8' template='template0'
+      postgresql_db: name=db_celerydemo state=present owner=vagrant encoding='UTF-8' lc_ctype='en_US.UTF-8' lc_collate='en_US.UTF-8' template='template0'
 
 - hosts: vagrant
   sudo: true
+  sudo_user: vagrant
   vars:
       username: "guest"
       email: "superuser@email.com"
       password: "guest"
-# vars_prompt:
-#     - name: "username"
-#       prompt: "Enter Django superuser name"
-#     - name: "password"
-#       prompt: "Enter Django superuser password"
-#       confirm: yes
-#     - name: "email"
-#       prompt: "Enter Django superuser email"
   tasks:
     - name: syncdb to create necessary tables
       django_manage: command=syncdb app_path=/home/vagrant/code/
     - name: create django superuser
       command: python create_superuser.py {{username}} {{email}} {{password}} chdir=/home/vagrant/code/
     - name: start supervisord service
-      command: supervisord chdir=/home/vagrant/code/
-#   - name: use supervisord to bring up all services
-#     supervisorctl: name='celeryapp:' state=restarted config=/home/vagrant/app/supervisord.conf
+      command: supervisord -c /home/vagrant/code/supervisord.conf
