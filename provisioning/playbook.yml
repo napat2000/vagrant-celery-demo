@@ -59,6 +59,6 @@
     - name: syncdb to create necessary tables
       django_manage: command=syncdb app_path=/home/vagrant/code/
     - name: create django superuser
-      command: python create_superuser.py {{username}} {{email}} {{password}} chdir=/home/vagrant/code/
+      command: /usr/bin/python create_superuser.py {{username}} {{email}} {{password}} chdir=/home/vagrant/code/
     - name: start supervisord service
       command: supervisord -c /home/vagrant/code/supervisord.conf

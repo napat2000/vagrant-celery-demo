@@ -1,0 +1,14 @@
+<h1 style="text-align: center">Let's create some tasks!</h1>
+
+<form method="POST" action="/sample_tasks/"style="text-align: center">
+  Countdown (in seconds): <input name="countdown" type="text"/>
+  <button type="submit">Create task</button>
+</form>
+
+{% if messages %}
+<ul style="text-align: center">
+  {% for message in messages %}
+  <li>{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
