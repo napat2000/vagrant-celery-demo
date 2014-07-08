@@ -19,6 +19,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # set up ansible as provisioner, which will 
   config.vm.provision "ansible" do |ansible|
+    ansible.limit = "all"
     ansible.playbook = "provisioning/playbook.yml"  # simple playbook that sets up the VM and starts all services
     ansible.inventory_path = "provisioning/ansible_hosts" # only has vagrant as the host; would potentially have other hosts if we were using to deploy
     ansible.verbose = "vvvv"  # set max verbosity when ansible is running. goes from 'v' to 'vvvv'

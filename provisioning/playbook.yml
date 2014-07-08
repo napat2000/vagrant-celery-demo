@@ -10,6 +10,14 @@
         - /var/log/celeryworker.log
         - /var/log/flower.log
         - /var/log/djangoserver.log
+    - name: change supervisord.log permission
+      file: path={{ item }} owner=vagrant group=admin mode=0644
+      with_items:
+        - /var/log/supervisord.log
+        - /var/log/celerycam.log
+        - /var/log/celeryworker.log
+        - /var/log/flower.log
+        - /var/log/djangoserver.log
     - name: apt-get install python-pycurl  # have to do it here b/c apt_repository module needs it
       apt: pkg=python-pycurl state=present update_cache=yes
     - name: add rabbitmq apt repository to sources.list
